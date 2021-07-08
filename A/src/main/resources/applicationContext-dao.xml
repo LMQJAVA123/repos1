@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+">
+
+    <!--引入外部的properties配置,数据库4个连接信息-->
+    <context:property-placeholder location="classpath:db.properties"/>
+
+    <!--配置数据库的连接池对象,数据源-->
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+        <!--属性的注入-->
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--
+        配置MyBatis框架,SqlSessionFactory对象,交给Spring容器管理
+        MyBatis和Spring框架整合包中的类 SqlSessionFactoryBean
+        SqlSessionFactoryBean对象,封装SqlSessionFactoryBuilder和SqlSessionFactory
+    -->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--属性注入,连接池对象-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--属性注入: pojo包的扫描-->
+        <property name="typeAliasesPackage" value="com.deyuan.pojo"/>
+        <!--属性注入: 告诉MyBatis框架配置文件的位置-->
+        <property name="configLocation" value="classpath:SqlMapConfig.xml"/>
+    </bean>
+    <!--
+        Mapper接口实现类,动态代理的,对象交给Spring容器进行管理
+        MyBatis和Spring框架整合包:提供类,专门进行mapper包扫描
+    -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--属性注入,要扫描的包-->
+        <property name="basePackage" value="com.deyuan.mapper"/>
+        <!--
+            属性注入: 需要SqlSessionFactoryBean
+            属性: 是对象,使用配置ref引用
+            属性: 是基本类型和String,使用value
+        -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"/>
+    </bean>
+</beans>
